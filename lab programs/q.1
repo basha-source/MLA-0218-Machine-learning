@@ -1,0 +1,31 @@
+import numpy as np
+import pandas as pd
+def find_s_algorithm(training_data):
+    """Implements the Find-S algorithm for learning the most specific hypothesis."""
+    hypothesis = None
+    
+    for example in training_data:
+        attributes, label = example[:-1], example[-1]
+        
+        if label == "Yes":
+            if hypothesis is None:
+                hypothesis = list(attributes)  # First positive example initializes the hypothesis
+            else:
+                for i in range(len(hypothesis)):
+                    if hypothesis[i] != attributes[i]:
+                        hypothesis[i] = '?'
+    
+    return hypothesis
+training_data = [
+    ["Sunny", "Warm", "Normal", "Strong", "Warm", "Same", "Yes"],
+    ["Sunny", "Warm", "High", "Strong", "Warm", "Same", "Yes"],
+    ["Rainy", "Cold", "High", "Strong", "Warm", "Change", "No"],
+    ["Sunny", "Warm", "High", "Strong", "Cool", "Change", "Yes"]
+]
+columns = ["Sky", "Temp", "Humidity", "Wind", "Water", "Forecast", "PlayTennis"]
+df = pd.DataFrame(training_data, columns=columns)
+hypothesis = find_s_algorithm(training_data)
+print("Final Hypothesis:", hypothesis)
+
+OUTPUT :
+Final Hypothesis: ['Sunny', 'Warm', '?', 'Strong', '?', '?']
