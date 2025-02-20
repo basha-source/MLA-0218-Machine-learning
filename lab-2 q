@@ -1,0 +1,65 @@
+import pandas as pd
+import numpy as np
+
+def load_data(filename):
+    """Load data from CSV file."""
+    df = pd.read_csv(filename)
+    return df.iloc[:, :-1].values, df.iloc[:, -1].values  # Features and labels
+
+def initialize_hypotheses(X, y):
+    """Initialize the specific (S) and general (G) hypotheses."""
+    num_attributes = X.shape[1]
+    S = None
+    for instance, label in zip(X, y):
+        if label == 'Yes':  # First positive example initializes S
+            S = instance.copy()
+            break
+    if S is None:
+        S = ['?'] * num_attributes  # Default if no positive examples exist
+    G = [['?'] * num_attributes]  # Most general hypothesis
+    return S, G
+
+def update_hypotheses(S, G, instance, label):
+    """Update S and G based on the given instance."""
+    num_attributes = len(S)
+    
+    if label == 'Yes':  # Positive example
+        for i in range(num_attributes):
+            if S[i] != instance[i]:  # Generalize S
+                S[i] = '?'
+        
+        # Remove inconsistent general hypotheses
+        G = [g for g in G if all(g[i] == '?' or g[i] == S[i] for i in range(num_attributes))]
+    
+    else:  # Negative example
+        new_G = []
+        for g in G:
+            for i in range(num_attributes):
+                if g[i] == '?':  # Specialize G
+                    for value in set([S[i], instance[i]]):  # Keep different values
+                        if value != instance[i]:  # Ensure it's inconsistent with negative example
+                            new_hypothesis = g.copy()
+                            new_hypothesis[i] = value
+                            new_G.append(new_hypothesis)
+        
+        # Keep only the most general hypotheses
+        G = [g for g in new_G if any(g[i] != '?' for i in range(num_attributes))]
+    
+    return S, G
+
+def candidate_elimination(filename):
+    """Runs the Candidate Elimination Algorithm."""
+    X, y = load_data(filename)
+    S, G = initialize_hypotheses(X, y)
+    
+    for instance, label in zip(X, y):
+        S, G = update_hypotheses(S, G, instance, label)
+    
+    return S, G
+
+if __name__ == "__main__":
+    filename = "training_data.csv"  # Ensure this CSV file exists with proper format
+    S_final, G_final = candidate_elimination(filename)
+    
+    print("\nFinal Specific Hypothesis:", S_final)
+    print("Final General Hypotheses:", G_final)
